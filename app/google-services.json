@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "158499930550",
+    "firebase_url": "https://japanese-testapp-database-default-rtdb.firebaseio.com",
+    "project_id": "japanese-testapp-database",
+    "storage_bucket": "japanese-testapp-database.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:158499930550:android:f727738ff566b43c204117",
+        "android_client_info": {
+          "package_name": "com.duolucky.japanesetest"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCw6YNFhRt7lqtwo9G9jFGOfTOhEeAasVM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
