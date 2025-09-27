@@ -1,6 +1,7 @@
 package com.duolucky.japanesetest
 
 import android.R.attr.password
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -20,6 +21,11 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.auth
 import com.google.geo.type.Viewport
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import org.checkerframework.checker.interning.qual.Interned
 
 class LoginActivity : AppCompatActivity() {
@@ -67,6 +73,7 @@ class LoginActivity : AppCompatActivity() {
                             if (task.isSuccessful) {
                                 Log.d("AppLog", "登入成功")
                                 Toast.makeText(this, "登入成功", Toast.LENGTH_LONG).show()
+                                setResult(Activity.RESULT_OK)
                                 finish()
                             } else {
                                 Log.w("AppLog", "登入失敗", task.exception)
@@ -104,13 +111,22 @@ class LoginActivity : AppCompatActivity() {
                 if (task.isSuccessful) {
                     Log.d("AppLog", "登入成功")
                     Toast.makeText(this, "登入成功", Toast.LENGTH_LONG).show()
-                    getSharedPreferences("jptest", Context.MODE_PRIVATE)
-                        .edit {
-                            putString("userEmail", email)
-                            putString("userPassword", password)
-                            putBoolean("loginStatus", true)
+                    CoroutineScope(Dispatchers.IO).launch {
+                        val userID = auth.uid.toString()
+                        val userName = cloudDatabase.child("user").child(userID).child("name")
+                            .get().await().value.toString()
+                        withContext(Dispatchers.Main) {
+                            getSharedPreferences("jptest", Context.MODE_PRIVATE)
+                                .edit {
+                                    putString("userEmail", email)
+                                    putString("userPassword", password)
+                                    putBoolean("loginStatus", true)
+                                    putString("userName", userName)
+                                }
+                            setResult(Activity.RESULT_OK)
+                            finish()
                         }
-                    finish()
+                    }
                 } else {
                     Log.w("AppLog", "登入失敗", task.exception)
                     AlertDialog.Builder(this)

@@ -52,7 +52,7 @@
         android:id="@+id/startPracticeJapaneseword"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
+        android:layout_marginStart="8dp"
         android:text="練習日單"
         app:layout_constraintStart_toEndOf="@+id/startPracticeAll"
         app:layout_constraintTop_toTopOf="@+id/startPracticeAll" />
@@ -82,7 +82,7 @@
         android:id="@+id/addDatabase"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
+        android:layout_marginStart="8dp"
         android:onClick="addQuestionDatabase"
         android:text="建立資料(開發者用)"
         app:layout_constraintStart_toEndOf="@+id/button4"
@@ -168,4 +168,14 @@
         android:text="本機題庫"
         app:layout_constraintStart_toStartOf="@+id/questionsBaseSettings"
         app:layout_constraintTop_toBottomOf="@+id/questionsBaseSettings" />
+
+    <Button
+        android:id="@+id/button5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:onClick="cacheQuestionViewerActivityButton"
+        android:text="查看快取題庫"
+        app:layout_constraintBottom_toBottomOf="@+id/questionsBaseCloudInport"
+        app:layout_constraintStart_toEndOf="@+id/questionsBaseCloudInport" />
 </androidx.constraintlayout.widget.ConstraintLayout>

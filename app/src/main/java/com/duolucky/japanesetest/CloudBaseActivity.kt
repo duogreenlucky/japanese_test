@@ -1,5 +1,7 @@
 package com.duolucky.japanesetest
 
+import android.app.Activity
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -9,6 +11,7 @@ import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.edit
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -26,8 +29,6 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
 class CloudBaseActivity : AppCompatActivity() {
-
-    private lateinit var cloudDatabase: DatabaseReference
     private lateinit var binding: ActivityCloudBaseBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,13 +43,13 @@ class CloudBaseActivity : AppCompatActivity() {
         val builder = AlertDialog.Builder(this)
         builder.setTitle("下載中...")
         builder.setMessage("正在向雲端資料庫取得目錄，請稍後...")
+        builder.setCancelable(false)
         val alertDialog = builder.create()
         alertDialog.show()
 
         CoroutineScope(Dispatchers.IO).launch {
             Log.d("AppLog", "開始連線Realtime Database")
             val questionMenuList = mutableListOf<QuestionMenu>()
-            cloudDatabase = Firebase.database.reference
             val amountSnapshot = cloudDatabase.child("question_base").child("amount").get().await()
             val amount = amountSnapshot.value as? Long ?: 0L
             Log.d("AppLog", "amount = $amount")
@@ -84,38 +85,61 @@ class CloudBaseActivity : AppCompatActivity() {
     fun downloadQuestions(id: String) {
         val builder = AlertDialog.Builder(this)
         builder.setTitle("下載中...")
+        builder.setCancelable(false)
         val database = Room.databaseBuilder(
             this,
             CacheQuestionsDatabase::class.java,
             "CacheQuestion"
         ).fallbackToDestructiveMigration(false).build()
         CoroutineScope(Dispatchers.IO).launch {
-            cloudDatabase = Firebase.database.reference
             val amountSnapshot = cloudDatabase.child("question_base").child(id).child("amount").get().await()
             val amount = amountSnapshot.value as? Long ?: 0L
+
             builder.setMessage("正在下載題庫，請稍後... 請勿關閉螢幕或程式\n下載進度(0/${amount /2})")
-            withContext(Dispatchers.Main) {
-                val alertDialog = builder.create()
-                alertDialog.show()
+
+            val alertDialog = withContext(Dispatchers.Main) {
+                val bud = builder.create()
+                bud.show()
+                bud
             }
+
+//            val messageView = withContext(Dispatchers.Main) {
+//                val bud = builder.create()
+//                bud.show()
+//                bud.findViewById<TextView>(android.R.id.message)
+//            }
+
+            val messageView = alertDialog.findViewById<TextView>(android.R.id.message)
+
             val questionDataBase = cloudDatabase.child("question_base").child(id).child("questions")
             for (num in 1..amount.toInt() step 2) {
                 val question = questionDataBase.child(num.toString()).get().await()
                 val answer = questionDataBase.child("$num"+1.toString()).get().await()
                 val questions = arrayListOf<CacheQuestions>(CacheQuestions("$question", "$answer"))
                 database.CacheQuestionsDao().add(questions)
-                builder.setMessage("正在下載題庫，請稍後... 請勿關閉螢幕或程式\n下載進度($num/${amount / 2})")
+
                 withContext(Dispatchers.Main) {
-                    builder.create().dismiss()
-                    builder.create().show()
+                    messageView?.text = "正在下載題庫，請稍後... 請勿關閉螢幕或程式\n下載進度(${(num + 1) / 2}/${amount / 2})"
                 }
                 Log.d("CloudDatabaseLog", "已新增題目到資料庫：$question，$answer")
             }
+
+            val questionBaseName = cloudDatabase.child("question_base").child(id).child("name")
+                .get().await().value.toString()
+            getSharedPreferences("jptest", Context.MODE_PRIVATE)
+                .edit{
+                    putString("cacheQuestionBaseName", questionBaseName)
+                }
             withContext(Dispatchers.Main) {
+                alertDialog.dismiss()
+
                 builder.setTitle("完成！")
                 builder.setMessage("下載已完成！")
-                builder.setPositiveButton("確定", null)
-                builder.create().dismiss()
+                builder.setPositiveButton("確定") { dialog, which ->
+                    setResult(Activity.RESULT_OK)
+                    finish()
+                }
+                builder.setCancelable(true)
                 builder.create().show()
             }
         }

@@ -14,6 +14,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.JapaneseTest日本語のテスト">
         <activity
+            android:name=".CacheQuestionViewerActivity"
+            android:exported="false" />
+        <activity
             android:name=".CloudBaseActivity"
             android:exported="false" />
         <activity
